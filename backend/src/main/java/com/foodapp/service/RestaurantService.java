@@ -69,6 +69,7 @@ public class RestaurantService {
                 .description(item.getDescription())
                 .price(item.getPrice())
                 .category(item.getCategory())
+                .rating(item.getRating())
                 .imageUrl(item.getImageUrl())
                 .isAvailable(item.getIsAvailable())
                 .restaurantId(restaurant.getId())

@@ -26,6 +26,8 @@ public class MenuItem {
 
     private String category;
 
+    private Double rating;
+
     private String imageUrl;
 
     @Column(nullable = false)

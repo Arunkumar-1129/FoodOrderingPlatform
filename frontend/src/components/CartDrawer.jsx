@@ -1,15 +1,13 @@
 import React, { useEffect } from 'react';
-import { X, Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
+import { X, Minus, Plus, ShoppingBag, Trash2, ArrowRight } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { formatCurrency } from '../utils/formatCurrency';
 import { updateCartItem, removeFromCart, fetchCart } from '../store/cartSlice';
 
 const CartDrawer = ({ isOpen, onClose }) => {
-  const { items, totalPrice, isAuthenticated } = useSelector((state) => ({
-    ...state.cart,
-    isAuthenticated: state.auth.isAuthenticated
-  }));
+  const { items, totalPrice, isLoading } = useSelector((state) => state.cart);
+  const { isAuthenticated } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -19,15 +17,12 @@ const CartDrawer = ({ isOpen, onClose }) => {
     }
   }, [isOpen, isAuthenticated, dispatch]);
 
-  if (!isOpen) return null;
-
-  const handleUpdateQuantity = (itemId, currentQuantity, change) => {
+  const handleUpdateQuantity = (itemId, menuItemId, currentQuantity, change) => {
     const newQuantity = currentQuantity + change;
     if (newQuantity < 1) {
       dispatch(removeFromCart(itemId));
     } else {
-      const item = items.find(i => i.id === itemId);
-      dispatch(updateCartItem({ menuItemId: item.menuItemId, quantity: newQuantity }));
+      dispatch(updateCartItem({ menuItemId, quantity: newQuantity }));
     }
   };
 
@@ -43,94 +38,125 @@ const CartDrawer = ({ isOpen, onClose }) => {
   return (
     <>
       {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 transition-opacity"
+      <div
+        className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-50 transition-opacity duration-300 ${
+          isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
         onClick={onClose}
       />
-      
+
       {/* Drawer */}
-      <div className="fixed inset-y-0 right-0 w-full md:w-96 bg-white shadow-2xl z-50 flex flex-col transform transition-transform duration-300 ease-in-out">
+      <div
+        className={`fixed inset-y-0 right-0 w-full md:w-[400px] bg-white shadow-2xl z-50 flex flex-col transform transition-transform duration-300 ease-in-out ${
+          isOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}
+      >
         {/* Header */}
-        <div className="px-6 py-4 border-b flex justify-between items-center bg-gray-50/80">
+        <div className="px-6 py-4 border-b flex justify-between items-center" style={{ backgroundColor: '#fff7f2' }}>
           <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-            <ShoppingBag className="text-orange-600" /> Your Cart
+            <ShoppingBag style={{ color: '#E8651A' }} size={22} />
+            Your Cart
+            {items && items.length > 0 && (
+              <span className="text-sm font-semibold text-white px-2 py-0.5 rounded-full ml-1" style={{ backgroundColor: '#E8651A' }}>
+                {items.reduce((sum, i) => sum + i.quantity, 0)}
+              </span>
+            )}
           </h2>
-          <button 
+          <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-200 rounded-full transition-colors text-gray-500 hover:text-gray-800"
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500 hover:text-gray-800"
           >
             <X size={20} />
           </button>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
-          {!items || items.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-gray-500 space-y-4">
-              <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center">
-                <ShoppingBag size={48} className="text-gray-300" />
+        <div className="flex-1 overflow-y-auto p-5">
+          {isLoading && items.length === 0 ? (
+            <div className="h-full flex items-center justify-center">
+              <div className="w-8 h-8 border-4 border-gray-200 rounded-full animate-spin" style={{ borderTopColor: '#E8651A' }} />
+            </div>
+          ) : !items || items.length === 0 ? (
+            <div className="h-full flex flex-col items-center justify-center text-gray-500 space-y-4 py-12">
+              <div className="w-24 h-24 bg-orange-50 rounded-full flex items-center justify-center">
+                <ShoppingBag size={42} className="text-orange-200" />
               </div>
-              <p className="text-lg font-medium">Your cart is empty</p>
-              <button 
+              <p className="text-lg font-semibold text-gray-700">Your cart is empty</p>
+              <p className="text-sm text-gray-400 text-center max-w-[200px]">
+                Add items from a restaurant to get started!
+              </p>
+              <button
                 onClick={onClose}
-                className="text-orange-600 font-medium hover:text-orange-700 hover:underline"
+                className="mt-2 text-sm font-semibold px-4 py-2 rounded-full transition-colors text-white"
+                style={{ backgroundColor: '#E8651A' }}
               >
-                Browse Restaurants
+                Explore Restaurants
               </button>
             </div>
           ) : (
-            <div className="space-y-6">
-              {/* Restaurant Name Header (assuming all items from same restaurant) */}
-              <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-                 <span className="font-semibold text-gray-800">Restaurant:</span>
-                 <span className="text-gray-600">{items[0]?.restaurantName}</span>
-              </div>
+            <div className="space-y-4">
+              {/* Restaurant name header */}
+              {items[0]?.restaurantName && (
+                <div className="flex items-center gap-2 pb-2 border-b border-gray-100 mb-4">
+                  <span className="text-xs uppercase tracking-wider font-bold text-gray-400">From</span>
+                  <span className="font-bold text-gray-800">{items[0].restaurantName}</span>
+                </div>
+              )}
 
               {items.map((item) => (
-                <div key={item.id} className="flex gap-4 p-3 bg-white border border-gray-100 rounded-lg hover:shadow-sm transition-shadow">
-                  <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-md border border-gray-100">
-                    <img 
-                      src={item.menuItemImageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=200&q=80'} 
+                <div
+                  key={item.id}
+                  className="flex gap-3 p-3 bg-white border border-gray-100 rounded-xl hover:shadow-sm transition-shadow"
+                >
+                  {/* Item image */}
+                  <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border border-gray-100 bg-gray-50">
+                    <img
+                      src={item.menuItemImageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=200&q=80'}
                       alt={item.menuItemName}
                       className="h-full w-full object-cover"
+                      onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=200&q=80'; }}
                     />
                   </div>
-                  
-                  <div className="flex flex-1 flex-col justify-between">
-                    <div>
-                      <div className="flex justify-between items-start">
-                        <h3 className="text-base font-semibold text-gray-900 line-clamp-2 pr-2">{item.menuItemName}</h3>
-                        <button 
-                          onClick={() => handleRemove(item.id)}
-                          className="text-gray-400 hover:text-red-500 transition-colors p-1"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                      <p className="mt-1 text-sm text-gray-500 font-medium">{formatCurrency(item.price)}</p>
+
+                  {/* Item details */}
+                  <div className="flex flex-1 flex-col justify-between min-w-0">
+                    <div className="flex justify-between items-start gap-2">
+                      <h3 className="text-sm font-semibold text-gray-900 line-clamp-1 flex-1">{item.menuItemName}</h3>
+                      <button
+                        onClick={() => handleRemove(item.id)}
+                        className="text-gray-300 hover:text-red-500 transition-colors p-1 flex-shrink-0"
+                      >
+                        <Trash2 size={14} />
+                      </button>
                     </div>
-                    
+
                     <div className="flex items-center justify-between mt-2">
-                      <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
-                        <button 
-                          onClick={() => handleUpdateQuantity(item.id, item.quantity, -1)}
-                          className="px-2.5 py-1 text-gray-600 hover:bg-gray-200 hover:text-orange-600 transition-colors"
+                      {/* Quantity controls */}
+                      <div className="flex items-center border-2 rounded-lg overflow-hidden" style={{ borderColor: '#E8651A' }}>
+                        <button
+                          onClick={() => handleUpdateQuantity(item.id, item.menuItemId, item.quantity, -1)}
+                          className="px-2 py-1 text-white transition-colors"
+                          style={{ backgroundColor: '#E8651A' }}
                         >
-                          <Minus size={14} />
+                          <Minus size={12} />
                         </button>
-                        <span className="px-3 py-1 font-medium text-sm text-gray-800 bg-white border-x">
+                        <span className="px-3 py-1 font-bold text-sm" style={{ color: '#E8651A' }}>
                           {item.quantity}
                         </span>
-                        <button 
-                          onClick={() => handleUpdateQuantity(item.id, item.quantity, 1)}
-                          className="px-2.5 py-1 text-gray-600 hover:bg-gray-200 hover:text-orange-600 transition-colors"
+                        <button
+                          onClick={() => handleUpdateQuantity(item.id, item.menuItemId, item.quantity, 1)}
+                          className="px-2 py-1 text-white transition-colors"
+                          style={{ backgroundColor: '#E8651A' }}
                         >
-                          <Plus size={14} />
+                          <Plus size={12} />
                         </button>
                       </div>
-                      <p className="font-bold text-gray-900">
-                        {formatCurrency(item.subtotal)}
-                      </p>
+
+                      {/* Subtotal */}
+                      <div className="text-right">
+                        <p className="text-xs text-gray-400">{formatCurrency(item.price)} × {item.quantity}</p>
+                        <p className="font-bold text-gray-900 text-sm">{formatCurrency(item.subtotal)}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -141,20 +167,30 @@ const CartDrawer = ({ isOpen, onClose }) => {
 
         {/* Footer */}
         {items && items.length > 0 && (
-          <div className="border-t border-gray-200 bg-white p-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-            <div className="flex justify-between text-base font-medium text-gray-900 mb-4 bg-gray-50 p-4 rounded-lg">
-              <p>Subtotal</p>
-              <p className="text-lg text-orange-600 font-bold">{formatCurrency(totalPrice)}</p>
+          <div className="border-t border-gray-100 bg-white p-5 shadow-[0_-4px_12px_-2px_rgba(0,0,0,0.06)]">
+            <div className="space-y-2 mb-4">
+              <div className="flex justify-between text-sm text-gray-500">
+                <span>Subtotal ({items.reduce((s, i) => s + i.quantity, 0)} items)</span>
+                <span className="font-medium text-gray-700">{formatCurrency(totalPrice)}</span>
+              </div>
+              <div className="flex justify-between text-sm text-gray-500">
+                <span>Delivery fee</span>
+                <span className="font-medium text-gray-700">calculated at checkout</span>
+              </div>
+              <div className="flex justify-between items-center pt-3 border-t border-gray-100">
+                <span className="font-bold text-gray-900">Total</span>
+                <span className="font-extrabold text-lg" style={{ color: '#E8651A' }}>{formatCurrency(totalPrice)}</span>
+              </div>
             </div>
-            <p className="mt-0.5 text-sm text-gray-500 mb-6 text-center">Shipping and taxes calculated at checkout.</p>
-            <div className="mt-6">
-              <button
-                onClick={handleCheckout}
-                className="w-full flex justify-center items-center rounded-lg border border-transparent bg-orange-600 px-6 py-4 text-base font-bold text-white shadow-sm hover:bg-orange-700 transition-all active:scale-[0.98]"
-              >
-                Checkout Now
-              </button>
-            </div>
+
+            <button
+              onClick={handleCheckout}
+              className="w-full flex justify-center items-center gap-2 rounded-xl py-4 text-base font-bold text-white shadow-lg transition-all active:scale-[0.98] hover:opacity-90"
+              style={{ backgroundColor: '#E8651A' }}
+            >
+              Proceed to Checkout
+              <ArrowRight size={18} />
+            </button>
           </div>
         )}
       </div>

@@ -2,6 +2,25 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 
+// ── localStorage helpers ────────────────────────────────────────────────────
+const CART_KEY = 'cravebite_cart';
+
+const saveCartToStorage = (cartState) => {
+  try {
+    localStorage.setItem(CART_KEY, JSON.stringify(cartState));
+  } catch (_) { /* ignore storage errors */ }
+};
+
+const loadCartFromStorage = () => {
+  try {
+    const raw = localStorage.getItem(CART_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (_) {
+    return null;
+  }
+};
+
+// ── Async Thunks ────────────────────────────────────────────────────────────
 export const fetchCart = createAsyncThunk('cart/fetchCart', async (_, { rejectWithValue }) => {
   try {
     const response = await api.get('/api/cart');
@@ -14,7 +33,7 @@ export const fetchCart = createAsyncThunk('cart/fetchCart', async (_, { rejectWi
 export const addToCart = createAsyncThunk('cart/addToCart', async ({ menuItemId, quantity }, { rejectWithValue }) => {
   try {
     const response = await api.post('/api/cart/add', { menuItemId, quantity });
-    toast.success('Added to cart');
+    toast.success('Added to cart! 🛒');
     return response.data.data;
   } catch (error) {
     toast.error(error.response?.data?.message || 'Failed to add to cart');
@@ -35,7 +54,7 @@ export const updateCartItem = createAsyncThunk('cart/updateCartItem', async ({ m
 export const removeFromCart = createAsyncThunk('cart/removeFromCart', async (itemId, { rejectWithValue }) => {
   try {
     const response = await api.delete(`/api/cart/remove/${itemId}`);
-    toast.success('Removed from cart');
+    toast.success('Item removed');
     return response.data.data;
   } catch (error) {
     toast.error(error.response?.data?.message || 'Failed to remove from cart');
@@ -52,7 +71,10 @@ export const clearCart = createAsyncThunk('cart/clearCart', async (_, { rejectWi
   }
 });
 
-const initialState = {
+// ── Initial State (hydrate from localStorage) ───────────────────────────────
+const stored = loadCartFromStorage();
+
+const initialState = stored || {
   items: [],
   totalItems: 0,
   totalPrice: 0,
@@ -60,6 +82,7 @@ const initialState = {
   error: null,
 };
 
+// ── Helpers ─────────────────────────────────────────────────────────────────
 const handleFulfilledCart = (state, action) => {
   state.isLoading = false;
   if (action.payload) {
@@ -71,8 +94,11 @@ const handleFulfilledCart = (state, action) => {
     state.totalItems = 0;
     state.totalPrice = 0;
   }
+  // Persist to localStorage
+  saveCartToStorage({ items: state.items, totalItems: state.totalItems, totalPrice: state.totalPrice });
 };
 
+// ── Slice ────────────────────────────────────────────────────────────────────
 const cartSlice = createSlice({
   name: 'cart',
   initialState,
@@ -81,35 +107,35 @@ const cartSlice = createSlice({
       state.items = [];
       state.totalItems = 0;
       state.totalPrice = 0;
-    }
+      localStorage.removeItem(CART_KEY);
+    },
   },
   extraReducers: (builder) => {
-    // Fetch Cart
+    // Pending
     builder.addCase(fetchCart.pending, (state) => { state.isLoading = true; });
+    builder.addCase(addToCart.pending, (state) => { state.isLoading = true; });
+
+    // Fulfilled
     builder.addCase(fetchCart.fulfilled, handleFulfilledCart);
+    builder.addCase(addToCart.fulfilled, handleFulfilledCart);
+    builder.addCase(updateCartItem.fulfilled, handleFulfilledCart);
+    builder.addCase(removeFromCart.fulfilled, handleFulfilledCart);
+
+    builder.addCase(clearCart.fulfilled, (state) => {
+      state.items = [];
+      state.totalItems = 0;
+      state.totalPrice = 0;
+      localStorage.removeItem(CART_KEY);
+    });
+
+    // Rejected
     builder.addCase(fetchCart.rejected, (state, action) => {
       state.isLoading = false;
       state.error = action.payload;
     });
-
-    // Add to Cart
-    builder.addCase(addToCart.fulfilled, handleFulfilledCart);
-    
-    // Update Cart
-    builder.addCase(updateCartItem.fulfilled, handleFulfilledCart);
-
-    // Remove from Cart
-    builder.addCase(removeFromCart.fulfilled, handleFulfilledCart);
-
-    // Clear Cart
-    builder.addCase(clearCart.fulfilled, (state) => {
-       state.items = [];
-       state.totalItems = 0;
-       state.totalPrice = 0;
-    });
+    builder.addCase(addToCart.rejected, (state) => { state.isLoading = false; });
   },
 });
 
 export const { resetCart } = cartSlice.actions;
-
 export default cartSlice.reducer;

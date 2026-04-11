@@ -15,6 +15,7 @@ public class MenuItemResponse {
     private String description;
     private Double price;
     private String category;
+    private Double rating;
     private String imageUrl;
     private Boolean isAvailable;
     private Long restaurantId;
