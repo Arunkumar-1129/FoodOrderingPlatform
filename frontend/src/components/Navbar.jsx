@@ -18,54 +18,60 @@ const Navbar = ({ onOpenCart }) => {
   };
 
   return (
-    <nav className="bg-white shadow-md sticky top-0 z-40">
+    <nav className="sticky top-0 z-40 border-b" style={{ backgroundColor: '#111111', borderColor: '#2E2E2E' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 flex items-center">
-              <span className="text-2xl font-bold text-orange-600 tracking-tight">CraveBite</span>
+              <span className="text-2xl font-black tracking-tight" style={{ color: '#C5F135' }}>CraveBite</span>
             </Link>
           </div>
 
           {/* Desktop Menu */}
-          <div className="hidden sm:flex sm:items-center sm:space-x-8">
-            <Link to="/" className="text-gray-700 hover:text-orange-600 px-3 py-2 text-sm font-medium transition-colors">Restaurants</Link>
-            
+          <div className="hidden sm:flex sm:items-center sm:space-x-6">
+            <Link to="/" className="text-gray-400 hover:text-white px-3 py-2 text-sm font-medium transition-colors">Restaurants</Link>
+
             {isAuthenticated ? (
               <>
                 {isAdmin && (
-                  <Link to="/admin" className="text-gray-700 hover:text-orange-600 px-3 py-2 text-sm font-medium transition-colors">Dashboard</Link>
+                  <Link to="/admin" className="text-gray-400 hover:text-white px-3 py-2 text-sm font-medium transition-colors">Dashboard</Link>
                 )}
-                <Link to="/orders" className="text-gray-700 hover:text-orange-600 px-3 py-2 text-sm font-medium transition-colors">My Orders</Link>
-                
+                <Link to="/orders" className="text-gray-400 hover:text-white px-3 py-2 text-sm font-medium transition-colors">My Orders</Link>
+
                 <button
                   onClick={onOpenCart}
-                  className="relative p-2 text-gray-600 hover:text-orange-600 transition-colors"
+                  className="relative p-2 text-gray-400 hover:text-white transition-colors"
                 >
-                  <ShoppingCart size={24} />
+                  <ShoppingCart size={22} />
                   {totalItems > 0 && (
-                    <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/4 -translate-y-1/4 bg-red-600 rounded-full">
+                    <span className="absolute top-0 right-0 inline-flex items-center justify-center w-5 h-5 text-xs font-bold leading-none text-black transform translate-x-1/4 -translate-y-1/4 rounded-full" style={{ backgroundColor: '#C5F135' }}>
                       {totalItems}
                     </span>
                   )}
                 </button>
 
-                <div className="flex items-center space-x-4 border-l pl-4">
-                  <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                    <User size={18} /> {user?.name}
+                <div className="flex items-center space-x-4 border-l pl-4" style={{ borderColor: '#2E2E2E' }}>
+                  <span className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                    <User size={16} className="text-gray-500" /> {user?.name}
                   </span>
                   <button
                     onClick={handleLogout}
-                    className="text-gray-500 hover:text-red-500 transition-colors flex items-center gap-1 text-sm font-medium"
+                    className="text-gray-500 hover:text-red-400 transition-colors flex items-center gap-1 text-sm font-medium"
                   >
-                    <LogOut size={18} /> Logout
+                    <LogOut size={16} /> Logout
                   </button>
                 </div>
               </>
             ) : (
-              <div className="flex items-center space-x-4">
-                <Link to="/login" className="text-gray-700 hover:text-orange-600 font-medium text-sm transition-colors">Login</Link>
-                <Link to="/register" className="bg-orange-600 text-white px-4 py-2 rounded-md font-medium text-sm hover:bg-orange-700 transition-colors">Sign Up</Link>
+              <div className="flex items-center space-x-3">
+                <Link to="/login" className="text-gray-400 hover:text-white font-medium text-sm transition-colors">Login</Link>
+                <Link
+                  to="/register"
+                  className="font-bold text-sm px-4 py-2 rounded-full transition-all hover:opacity-90"
+                  style={{ backgroundColor: '#C5F135', color: '#111111' }}
+                >
+                  Sign Up
+                </Link>
               </div>
             )}
           </div>
@@ -73,10 +79,10 @@ const Navbar = ({ onOpenCart }) => {
           {/* Mobile menu button */}
           <div className="flex items-center sm:hidden">
             {isAuthenticated && (
-              <button onClick={onOpenCart} className="relative p-2 mr-4 text-gray-600">
-                <ShoppingCart size={24} />
+              <button onClick={onOpenCart} className="relative p-2 mr-3 text-gray-400">
+                <ShoppingCart size={22} />
                 {totalItems > 0 && (
-                  <span className="absolute top-0 right-0 block h-4 w-4 bg-red-600 text-white text-[10px] text-center rounded-full">
+                  <span className="absolute top-0 right-0 block h-5 w-5 font-bold text-[10px] text-black text-center leading-5 rounded-full" style={{ backgroundColor: '#C5F135' }}>
                     {totalItems}
                   </span>
                 )}
@@ -84,9 +90,9 @@ const Navbar = ({ onOpenCart }) => {
             )}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none"
+              className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 focus:outline-none transition-colors"
             >
-              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              {isMenuOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
           </div>
         </div>
@@ -94,32 +100,32 @@ const Navbar = ({ onOpenCart }) => {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="sm:hidden border-t">
-          <div className="pt-2 pb-3 space-y-1">
-            <Link to="/" className="block px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-orange-600">Restaurants</Link>
-            
+        <div className="sm:hidden border-t" style={{ backgroundColor: '#1C1C1C', borderColor: '#2E2E2E' }}>
+          <div className="pt-2 pb-4 space-y-1 px-4">
+            <Link to="/" className="block py-2.5 text-base font-medium text-gray-400 hover:text-white transition-colors">Restaurants</Link>
+
             {isAuthenticated ? (
               <>
                 {isAdmin && (
-                  <Link to="/admin" className="block px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-orange-600">Dashboard</Link>
+                  <Link to="/admin" className="block py-2.5 text-base font-medium text-gray-400 hover:text-white transition-colors">Dashboard</Link>
                 )}
-                <Link to="/orders" className="block px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-orange-600">My Orders</Link>
-                <div className="border-t border-gray-200 mt-2 pt-2">
-                  <div className="px-4 py-2 flex items-center text-sm text-gray-500">
-                    <User size={18} className="mr-2" /> {user?.name} ({user?.email})
+                <Link to="/orders" className="block py-2.5 text-base font-medium text-gray-400 hover:text-white transition-colors">My Orders</Link>
+                <div className="border-t mt-2 pt-3" style={{ borderColor: '#2E2E2E' }}>
+                  <div className="flex items-center text-sm text-gray-500 mb-2">
+                    <User size={16} className="mr-2" /> {user?.name}
                   </div>
                   <button
                     onClick={handleLogout}
-                    className="block w-full text-left px-4 py-2 text-base font-medium text-red-600 hover:bg-gray-50"
+                    className="text-red-400 text-sm font-medium flex items-center gap-1"
                   >
-                    Logout
+                    <LogOut size={16} /> Logout
                   </button>
                 </div>
               </>
             ) : (
-              <div className="border-t border-gray-200 mt-2 pt-2">
-                <Link to="/login" className="block px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-50">Login</Link>
-                <Link to="/register" className="block px-4 py-2 text-base font-medium text-orange-600 hover:bg-gray-50">Sign Up</Link>
+              <div className="border-t mt-2 pt-3 space-y-2" style={{ borderColor: '#2E2E2E' }}>
+                <Link to="/login" className="block py-2 text-base font-medium text-gray-400 hover:text-white transition-colors">Login</Link>
+                <Link to="/register" className="inline-block px-4 py-2 rounded-full font-bold text-sm" style={{ backgroundColor: '#C5F135', color: '#111111' }}>Sign Up</Link>
               </div>
             )}
           </div>
